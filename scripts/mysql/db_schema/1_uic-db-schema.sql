@@ -9,6 +9,7 @@ CREATE TABLE `team` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(64) NOT NULL,
   `resume` varchar(255) not null default '',
+  `robot` varchar(255) not null default '',
   `creator` int(10) unsigned NOT NULL DEFAULT '0',
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
