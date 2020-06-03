@@ -17,9 +17,9 @@ package cron
 import (
 	"encoding/json"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
 	"github.com/open-falcon/falcon-plus/modules/alarm/g"
 	"github.com/open-falcon/falcon-plus/modules/alarm/model"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
 )
