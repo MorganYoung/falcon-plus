@@ -27,6 +27,7 @@
         "sms": "http://127.0.0.1:10086/sms",
         "mail": "http://127.0.0.1:10086/mail",
         "dashboard": "http://127.0.0.1:8081",
+        "robot": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=4f0ef8f8-57c4-46bf-9df8-0a06e9a8f8a4",
         "plus_api":"http://127.0.0.1:8080",
         "plus_api_token": "default-token-used-in-server-side"
     },
