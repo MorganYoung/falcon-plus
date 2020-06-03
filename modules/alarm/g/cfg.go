@@ -44,6 +44,7 @@ type ApiConfig struct {
 	PlusApi      string `json:"plus_api"`
 	PlusApiToken string `json:"plus_api_token"`
 	IM           string `json:"im"`
+	ROBOT        string `json:"robot"`
 }
 
 type FalconPortalConfig struct {

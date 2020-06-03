@@ -22,6 +22,7 @@ var (
 	IMWorkerChan   chan int
 	SmsWorkerChan  chan int
 	MailWorkerChan chan int
+	RobotWorkerChan chan int
 )
 
 func InitSenderWorker() {
@@ -29,4 +30,5 @@ func InitSenderWorker() {
 	IMWorkerChan = make(chan int, workerConfig.IM)
 	SmsWorkerChan = make(chan int, workerConfig.Sms)
 	MailWorkerChan = make(chan int, workerConfig.Mail)
+	RobotWorkerChan = make(chan int, workerConfig.Mail)
 }
