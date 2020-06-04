@@ -100,7 +100,7 @@ func Teams(c *gin.Context) {
 type APICreateTeamInput struct {
 	Name    string  `json:"team_name" binding:"required"`
 	Resume  string  `json:"resume"`
-	Robot  string  `json:"robot"`
+	Robot   string  `json:"robot"`
 	UserIDs []int64 `json:"users"`
 }
 
@@ -120,7 +120,7 @@ func CreateTeam(c *gin.Context) {
 	team := uic.Team{
 		Name:    cteam.Name,
 		Resume:  cteam.Resume,
-		Robot: cteam.Robot,
+		Robot:   cteam.Robot,
 		Creator: user.ID,
 	}
 	dt := db.Uic.Table("team").Create(&team)
@@ -149,7 +149,7 @@ func CreateTeam(c *gin.Context) {
 type APIUpdateTeamInput struct {
 	ID      int    `json:"team_id" binding:"required"`
 	Resume  string `json:"resume"`
-	Robot  string `json:"robot"`
+	Robot   string `json:"robot"`
 	Name    string `json:"name"`
 	UserIDs []int  `json:"users"`
 }
@@ -360,7 +360,7 @@ func DeleteTeam(c *gin.Context) {
 }
 
 type APIGetTeamOutput struct {
-	uic.Team
+	Team        uic.Team   `json:"team"`
 	Users       []uic.User `json:"users"`
 	TeamCreator string     `json:"creator_name"`
 }

@@ -26,6 +26,7 @@ const (
 	IM_QUEUE_NAME   = "/im"
 	SMS_QUEUE_NAME  = "/sms"
 	MAIL_QUEUE_NAME = "/mail"
+	ROBOT_QUEUE_NAME = "/robot"
 )
 
 func PopAllSms() []*model.Sms {
@@ -122,6 +123,39 @@ func PopAllMail() []*model.Mail {
 		}
 
 		ret = append(ret, &mail)
+	}
+
+	return ret
+}
+
+func PopAllRobot() []*model.Robot {
+	ret := []*model.Robot{}
+	queue := ROBOT_QUEUE_NAME
+
+	rc := g.RedisConnPool.Get()
+	defer rc.Close()
+
+	for {
+		reply, err := redis.String(rc.Do("RPOP", queue))
+		if err != nil {
+			if err != redis.ErrNil {
+				log.Error(err)
+			}
+			break
+		}
+
+		if reply == "" || reply == "nil" {
+			continue
+		}
+
+		var robot model.Robot
+		err = json.Unmarshal([]byte(reply), &robot)
+		if err != nil {
+			log.Error(err, reply)
+			continue
+		}
+
+		ret = append(ret, &robot)
 	}
 
 	return ret

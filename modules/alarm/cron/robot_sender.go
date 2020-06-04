@@ -17,7 +17,6 @@ package cron
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/open-falcon/falcon-plus/modules/alarm/g"
 	"github.com/open-falcon/falcon-plus/modules/alarm/model"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -36,27 +35,40 @@ type Markdown struct {
 	Content       string `json:"content"`
 }
 
-func SendRobotList(L []*model.Mail) {
-	for _, mail := range L {
+func SendRobotList(L []*model.Robot) {
+	for _, robot := range L {
 		RobotWorkerChan <- 1
-		go SendRobot(mail)
+		go SendRobot(robot)
 	}
 }
 
-func SendRobot(mail *model.Mail) {
+func SendRobot(robot *model.Robot) {
 	defer func() {
 		<-RobotWorkerChan
 	}()
 
-	url := g.Config().Api.ROBOT
+	title := "falcon 邮件报警"
+	urls := robot.Url
+	if strings.Contains(urls, ",") {
+		split := strings.Split(urls, ",")
+		for _, url := range split {
+			CallRobot(url, title, robot.Content)
+		}
+	} else {
+		CallRobot(urls, title, robot.Content)
+	}
+
+}
+
+func CallRobot(url string, title string, content string) {
 	md := Markdown{"@all",
-		fmt.Sprintf("# %s\n### %s","falcon 邮件报警", mail.Content)}
+		fmt.Sprintf("# %s\n### %s", title, content)}
 	body := RobotBody{"markdown", md}
 	bodyStr, _ := json.Marshal(body)
 	resp, err := http.Post(url, "application/json", strings.NewReader(string(bodyStr)))
 	if err != nil {
-		log.Errorf("send im fail, tos:%s, content:%s, error:%v", mail.Tos, mail.Content, err)
+		log.Errorf("send robot fail, url:%s, content:%s, error:%v", url, content, err)
 	}
 
-	log.Debugf("send im:%v, resp:%v, url:%s", mail, resp, url)
+	log.Debugf("send robot:%v, resp:%v, url:%s", content, resp, url)
 }

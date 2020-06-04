@@ -28,7 +28,7 @@ import (
 )
 
 type APIGetTeamOutput struct {
-	uic.Team
+	Team        uic.Team    `json:"team"`
 	Users       []*uic.User `json:"users"`
 	TeamCreator string      `json:"creator_name"`
 }
@@ -38,7 +38,14 @@ type UsersCache struct {
 	M map[string][]*uic.User
 }
 
+type TeamsCache struct {
+	sync.RWMutex
+	M map[string]uic.Team
+}
+
 var Users = &UsersCache{M: make(map[string][]*uic.User)}
+
+var Teams = &TeamsCache{M: make(map[string]uic.Team)}
 
 func (this *UsersCache) Get(team string) []*uic.User {
 	this.RLock()
@@ -57,6 +64,23 @@ func (this *UsersCache) Set(team string, users []*uic.User) {
 	this.M[team] = users
 }
 
+func (this *TeamsCache) Get(team string) uic.Team {
+	this.RLock()
+	defer this.RUnlock()
+	val, exists := this.M[team]
+	if !exists {
+		return uic.Team{}
+	}
+
+	return val
+}
+
+func (this *TeamsCache) Set(team string, teamr uic.Team) {
+	this.Lock()
+	defer this.Unlock()
+	this.M[team] = teamr
+}
+
 func UsersOf(team string) []*uic.User {
 	users := CurlUic(team)
 
@@ -67,6 +91,18 @@ func UsersOf(team string) []*uic.User {
 	}
 
 	return users
+}
+
+func TeamOf(team string) uic.Team {
+	teamr := CurlTeam(team)
+
+	if teamr.Name != "" {
+		Teams.Set(team, teamr)
+	} else {
+		teamr = Teams.Get(team)
+	}
+
+	return teamr
 }
 
 func GetUsers(teams string) map[string]*uic.User {
@@ -89,10 +125,28 @@ func GetUsers(teams string) map[string]*uic.User {
 	return userMap
 }
 
+func GetTeams(teams string) map[string]*uic.Team {
+	teamMap := make(map[string]*uic.Team)
+	arr := strings.Split(teams, ",")
+	for _, team := range arr {
+		if team == "" {
+			continue
+		}
+
+		teamr := TeamOf(team)
+		if teamr.Name == "" {
+			continue
+		}
+		teamMap[team] = &teamr
+
+	}
+	return teamMap
+}
+
 // return phones, emails, IM
-func ParseTeams(teams string) ([]string, []string, []string) {
+func ParseTeams(teams string) ([]string, []string, []string, []string) {
 	if teams == "" {
-		return []string{}, []string{}, []string{}
+		return []string{}, []string{}, []string{}, []string{}
 	}
 
 	userMap := GetUsers(teams)
@@ -110,7 +164,16 @@ func ParseTeams(teams string) ([]string, []string, []string) {
 			imSet.Add(user.IM)
 		}
 	}
-	return phoneSet.ToSlice(), mailSet.ToSlice(), imSet.ToSlice()
+
+	teamMap := GetTeams(teams)
+	robotSet := set.NewStringSet();
+	for _, team := range teamMap {
+		if team.Robot != "" {
+			robotSet.Add(team.Robot)
+		}
+	}
+
+	return phoneSet.ToSlice(), mailSet.ToSlice(), imSet.ToSlice(), robotSet.ToSlice()
 }
 
 func CurlUic(team string) []*uic.User {
@@ -134,4 +197,27 @@ func CurlUic(team string) []*uic.User {
 	}
 
 	return team_users.Users
+}
+
+func CurlTeam(team string) uic.Team {
+	if team == "" {
+		return uic.Team{}
+	}
+
+	uri := fmt.Sprintf("%s/api/v1/team/name/%s", g.Config().Api.PlusApi, team)
+	req := httplib.Get(uri).SetTimeout(2*time.Second, 10*time.Second)
+	token, _ := json.Marshal(map[string]string{
+		"name": "falcon-alarm",
+		"sig":  g.Config().Api.PlusApiToken,
+	})
+	req.Header("Apitoken", string(token))
+
+	var team_users APIGetTeamOutput
+	err := req.ToJson(&team_users)
+	if err != nil {
+		log.Errorf("curl %s fail: %v", uri, err)
+		return uic.Team{}
+	}
+
+	return team_users.Team
 }

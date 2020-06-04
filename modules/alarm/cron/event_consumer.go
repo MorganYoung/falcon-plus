@@ -52,7 +52,7 @@ func consumeHighEvents(event *cmodel.Event, action *api.Action) {
 		return
 	}
 
-	phones, mails, ims := api.ParseTeams(action.Uic)
+	phones, mails, ims, robots := api.ParseTeams(action.Uic)
 
 	smsContent := GenerateSmsContent(event)
 	mailContent := GenerateMailContent(event)
@@ -65,6 +65,7 @@ func consumeHighEvents(event *cmodel.Event, action *api.Action) {
 
 	redi.WriteIM(ims, imContent)
 	redi.WriteMail(mails, smsContent, mailContent)
+	redi.WriteRobot(robots, mailContent)
 
 }
 
