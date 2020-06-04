@@ -77,6 +77,21 @@ func WriteMailModel(mail *model.Mail) {
 	lpush(MAIL_QUEUE_NAME, string(bs))
 }
 
+func WriteRobotModel(robot *model.Robot) {
+	if robot == nil {
+		return
+	}
+
+	bs, err := json.Marshal(robot)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	log.Debugf("write robot to queue, robot:%v, queue:%s", robot, ROBOT_QUEUE_NAME)
+	lpush(ROBOT_QUEUE_NAME, string(bs))
+}
+
 func WriteSms(tos []string, content string) {
 	if len(tos) == 0 {
 		return
@@ -102,4 +117,13 @@ func WriteMail(tos []string, subject, content string) {
 
 	mail := &model.Mail{Tos: strings.Join(tos, ","), Subject: subject, Content: content}
 	WriteMailModel(mail)
+}
+
+func WriteRobot(robots []string, content string) {
+	if len(robots) == 0 {
+		return
+	}
+
+	robot := &model.Robot{Url: strings.Join(robots, ","), Content: content}
+	WriteRobotModel(robot)
 }

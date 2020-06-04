@@ -68,6 +68,7 @@ func main() {
 	go cron.ConsumeIM()
 	go cron.ConsumeSms()
 	go cron.ConsumeMail()
+	go cron.ConsumeRobot()
 	go cron.CleanExpiredEvent()
 
 	sigs := make(chan os.Signal, 1)

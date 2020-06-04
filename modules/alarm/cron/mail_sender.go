@@ -34,6 +34,17 @@ func ConsumeMail() {
 	}
 }
 
+func ConsumeRobot() {
+	for {
+		L := redi.PopAllRobot()
+		if len(L) == 0 {
+			time.Sleep(time.Millisecond * 200)
+			continue
+		}
+		SendRobotList(L)
+	}
+}
+
 func SendMailList(L []*model.Mail) {
 	for _, mail := range L {
 		MailWorkerChan <- 1
