@@ -28,13 +28,14 @@ type HttpConfig struct {
 }
 
 type RedisConfig struct {
-	Addr          string   `json:"addr"`
-	MaxIdle       int      `json:"maxIdle"`
-	HighQueues    []string `json:"highQueues"`
-	LowQueues     []string `json:"lowQueues"`
-	UserIMQueue   string   `json:"userIMQueue"`
-	UserSmsQueue  string   `json:"userSmsQueue"`
-	UserMailQueue string   `json:"userMailQueue"`
+	Addr           string   `json:"addr"`
+	MaxIdle        int      `json:"maxIdle"`
+	HighQueues     []string `json:"highQueues"`
+	LowQueues      []string `json:"lowQueues"`
+	UserIMQueue    string   `json:"userIMQueue"`
+	UserSmsQueue   string   `json:"userSmsQueue"`
+	UserMailQueue  string   `json:"userMailQueue"`
+	TeamRobotQueue string   `json:"teamRobotQueue"`
 }
 
 type ApiConfig struct {
@@ -44,7 +45,6 @@ type ApiConfig struct {
 	PlusApi      string `json:"plus_api"`
 	PlusApiToken string `json:"plus_api_token"`
 	IM           string `json:"im"`
-	ROBOT        string `json:"robot"`
 }
 
 type FalconPortalConfig struct {

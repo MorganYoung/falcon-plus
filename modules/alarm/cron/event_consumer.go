@@ -82,6 +82,7 @@ func consumeLowEvents(event *cmodel.Event, action *api.Action) {
 
 	ParseUserIm(event, action)
 	ParseUserMail(event, action)
+	ParseTeamRobot(event, action)
 }
 
 func ParseUserSms(event *cmodel.Event, action *api.Action) {
@@ -144,6 +145,40 @@ func ParseUserMail(event *cmodel.Event, action *api.Action) {
 		bs, err := json.Marshal(dto)
 		if err != nil {
 			log.Error("json marshal MailDto fail:", err)
+			continue
+		}
+
+		_, err = rc.Do("LPUSH", queue, string(bs))
+		if err != nil {
+			log.Error("LPUSH redis", queue, "fail:", err, "dto:", string(bs))
+		}
+	}
+}
+
+func ParseTeamRobot(event *cmodel.Event, action *api.Action) {
+	teamMap := api.GetTeams(action.Uic)
+
+	content := GenerateMailContent(event)
+	metric := event.Metric()
+	status := event.Status
+	priority := event.Priority()
+
+	queue := g.Config().Redis.TeamRobotQueue
+
+	rc := g.RedisConnPool.Get()
+	defer rc.Close()
+
+	for _, team := range teamMap {
+		dto := RobotDto{
+			Priority: priority,
+			Metric:   metric,
+			Content:  content,
+			Url:      team.Robot,
+			Status:   status,
+		}
+		bs, err := json.Marshal(dto)
+		if err != nil {
+			log.Error("json marshal RobotDto fail:", err)
 			continue
 		}
 

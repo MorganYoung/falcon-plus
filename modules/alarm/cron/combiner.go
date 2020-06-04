@@ -42,6 +42,14 @@ func CombineMail() {
 	}
 }
 
+func CombineRobot() {
+	for {
+		// 每分钟读取处理一次
+		time.Sleep(time.Minute)
+		combineRobot()
+	}
+}
+
 func CombineIM() {
 	for {
 		// 每分钟读取处理一次
@@ -84,6 +92,42 @@ func combineMail() {
 
 		log.Debugf("combined mail subject:%s, content:%s", subject, content)
 		redi.WriteMail([]string{arr[0].Email}, subject, content)
+	}
+}
+
+func combineRobot() {
+	dtos := popAllRobotDto()
+	count := len(dtos)
+	if count == 0 {
+		return
+	}
+
+	dtoMap := make(map[string][]*RobotDto)
+	for i := 0; i < count; i++ {
+		key := fmt.Sprintf("%d%s%s%s", dtos[i].Priority, dtos[i].Status, dtos[i].Url, dtos[i].Metric)
+		if _, ok := dtoMap[key]; ok {
+			dtoMap[key] = append(dtoMap[key], dtos[i])
+		} else {
+			dtoMap[key] = []*RobotDto{dtos[i]}
+		}
+	}
+
+	// 不要在这处理，继续写回redis，否则重启alarm很容易丢数据
+	for _, arr := range dtoMap {
+		size := len(arr)
+		if size == 1 {
+			redi.WriteRobot([]string{arr[0].Url}, arr[0].Content)
+			continue
+		}
+
+		contentArr := make([]string, size)
+		for i := 0; i < size; i++ {
+			contentArr[i] = arr[i].Content
+		}
+		content := strings.Join(contentArr, "\n\n")
+
+		log.Debugf("combined robot url:%s, content:%s", arr[0].Url, content)
+		redi.WriteRobot([]string{arr[0].Url}, content)
 	}
 }
 
@@ -254,6 +298,39 @@ func popAllMailDto() []*MailDto {
 		}
 
 		ret = append(ret, &mailDto)
+	}
+
+	return ret
+}
+
+func popAllRobotDto() []*RobotDto {
+	ret := []*RobotDto{}
+	queue := g.Config().Redis.TeamRobotQueue
+
+	rc := g.RedisConnPool.Get()
+	defer rc.Close()
+
+	for {
+		reply, err := redis.String(rc.Do("RPOP", queue))
+		if err != nil {
+			if err != redis.ErrNil {
+				log.Error("get RobotDto fail", err)
+			}
+			break
+		}
+
+		if reply == "" || reply == "nil" {
+			continue
+		}
+
+		var robotDto RobotDto
+		err = json.Unmarshal([]byte(reply), &robotDto)
+		if err != nil {
+			log.Errorf("json unmarshal RobotDto: %s fail: %v", reply, err)
+			continue
+		}
+
+		ret = append(ret, &robotDto)
 	}
 
 	return ret

@@ -23,6 +23,14 @@ type MailDto struct {
 	Status   string `json:"status"`
 }
 
+type RobotDto struct {
+	Priority int    `json:"priority"`
+	Metric   string `json:"metric"`
+	Content  string `json:"content"`
+	Url      string `json:"url"`
+	Status   string `json:"status"`
+}
+
 type SmsDto struct {
 	Priority int    `json:"priority"`
 	Metric   string `json:"metric"`

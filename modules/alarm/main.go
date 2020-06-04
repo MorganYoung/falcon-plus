@@ -60,6 +60,7 @@ func main() {
 	go cron.ReadLowEvent()
 	go cron.CombineSms()
 	go cron.CombineMail()
+	go cron.CombineRobot()
 	go cron.CombineIM()
 	go cron.ConsumeIM()
 	go cron.ConsumeSms()
