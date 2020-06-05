@@ -28,7 +28,7 @@ import (
 )
 
 type APIGetTeamOutput struct {
-	Team        uic.Team    `json:"team"`
+	uic.Team
 	Users       []*uic.User `json:"users"`
 	TeamCreator string      `json:"creator_name"`
 }
@@ -166,7 +166,7 @@ func ParseTeams(teams string) ([]string, []string, []string, []string) {
 	}
 
 	teamMap := GetTeams(teams)
-	robotSet := set.NewStringSet();
+	robotSet := set.NewStringSet()
 	for _, team := range teamMap {
 		if team.Robot != "" {
 			robotSet.Add(team.Robot)
